@@ -16,7 +16,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        fetch-depth: 5
+        fetch-depth: 2
         path: '/__w/beam-trending.github.io/beam-trending.github.io/'
         token: ${{ secrets.TOKEN }}
     - name: Get last commit message
