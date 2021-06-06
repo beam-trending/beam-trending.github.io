@@ -1,6 +1,7 @@
 name: Update Data
 
 on:
+  push:
   schedule:
     - cron: '0 21 * * *'
 
@@ -37,4 +38,7 @@ jobs:
         _build/default/bin/grain
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: ${{ date }}
+        commit_message: ${{ steps.last-commit-message.outputs.msg }}
+        commit_options: '--amend --no-edit'
+        push_options: '--force'
+        skip_fetch: true
