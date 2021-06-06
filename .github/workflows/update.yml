@@ -1,0 +1,43 @@
+name: Update Data
+
+on:
+  schedule:
+    - cron: '0 21 * * *'
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    container:
+      image: erlang:24.0
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 5
+        path: '/__w/beam-trending.github.io/beam-trending.github.io/'
+        token: ${{ secrets.TOKEN }}
+    - name: Get last commit message
+      id: last-commit-message
+      run: echo "::set-output name=msg::$(git log -1 --pretty=%s)"
+    - name: Run rebar3 escriptize
+      run: |
+        echo `pwd`
+        cd grain
+        rebar3 get-deps
+        rebar3 compile
+        DEBUG=1 rebar3 escriptize
+    - name: Run UpdateData
+      env:
+        ACCESS_TOKEN: ${{ secrets.TOKEN }}
+      run: |
+        cd grain
+        _build/default/bin/grain
+    - uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: ${{ steps.last-commit-message.outputs.msg }}
+        commit_options: '--amend --no-edit'
+        push_options: '--force'
+        skip_fetch: true

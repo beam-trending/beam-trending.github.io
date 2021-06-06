@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+
+<head>
+    <meta charset="utf-8">
+    <link type="image/x-icon" rel="shortcut icon" href="star.svg" />
+</head>
+
+<body style="height: 100%; margin: 0">
+    <div id="container" style="height: 100%"></div>
+
+    <script type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/echarts-nightly@5.1.2-dev.20210512/dist/echarts.min.js"></script>
+    <script type="text/javascript" src="../data/elixir_star_race.data"> </script>
+    <script type="text/javascript">
+        var dom = document.getElementById("container");
+        var myChart = echarts.init(dom);
+        var app = {};
+
+        var option;
+        var index = 0;
+
+        var source = race_top;
+        option = {
+            xAxis: {
+                max: 'dataMax',
+            },
+            yAxis: {
+                type: 'category',
+                data: source[0].yAxis,
+                inverse: true,
+                axisLabel: {
+                    show: true,
+                    textStyle: {
+                        fontSize: 9
+                    },
+                    formatter: function (value) {
+                        return value;
+                    },
+                    rich: {
+                        flag: {
+                            fontSize: 25,
+                            padding: 5
+                        }
+                    }
+                },
+                animationDuration: 300,
+                animationDurationUpdate: 300,
+                max: (source[0].yAxis).length - 6
+            },
+            series: [{
+                realtimeSort: true,
+                type: 'bar',
+                data: source[0].data,
+                label: {
+                    show: true,
+                    position: 'right',
+                    valueAnimation: true
+                }
+            }],
+            legend: {
+                show: true
+            },
+            top: 0,
+            animationDuration: 0,
+            animationDurationUpdate: 2500,
+            animationEasing: 'linear',
+            animationEasingUpdate: 'linear',
+            graphic: {
+                elements: [{
+                    type: 'text',
+                    right: 160,
+                    bottom: 60,
+                    style: {
+                        text: source[0].date,
+                        font: 'bolder 80px monospace',
+                        fill: 'rgba(100, 100, 100, 0.25)'
+                    },
+                    z: 100
+                }]
+            }
+        };
+
+        function run() {
+            option.yAxis.data = source[index].yAxis;
+            option.yAxis.max = (source[index].yAxis).length - 6;
+            option.series[0].data = source[index].data;
+            option.graphic.elements[0].style.text = source[index].date
+            if (index == source.length - 1) {
+                setTimeout(function () {
+                    index = 0
+                }, 10000);
+            } else {
+                index++
+            }
+            myChart.setOption(option);
+        }
+
+        setTimeout(function () {
+            run();
+        }, 0);
+        setInterval(function () {
+            run();
+        }, 2500);
+
+        if (option && typeof option === 'object') {
+            myChart.setOption(option);
+        }
+    </script>
+
+    </iframe>
+</body>
+
+</html>
