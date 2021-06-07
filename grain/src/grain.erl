@@ -339,7 +339,8 @@ gen_race_data(Source, Var, File) ->
             Data1 = lists:reverse(Data),
             {Data2, YAxis1} = lists:unzip(lists:sort(lists:zip(Data1, YAxis))),
             {YAxis2, _} = lists:foldr(fun(Repo, {Acc, C}) ->
-                {[<<(integer_to_binary(C))/binary, <<":">>/binary, Repo/binary>> | Acc], C + 1} end,
+                Rank = get_rank(C),
+                {[<<Rank/binary, <<":">>/binary, Repo/binary>> | Acc], C + 1} end,
                 {[], 1}, YAxis1),
             {[#{<<"yAxis">> => lists:reverse(YAxis2), <<"data">> => lists:reverse(Data2), <<"date">> => Date} | Res],
                 NewLatest}
@@ -454,3 +455,15 @@ get_icon("cowboy") -> <<"https://ninenines.eu/img/ico/favicon.ico">>;
 get_icon("phoenix") -> <<"https://hexdocs.pm/phoenix/assets/logo.png">>;
 get_icon("ecto") -> <<"https://hexdocs.pm/ecto/assets/logo.png">>;
 get_icon(_) -> <<"./assets/star.svg">>.
+
+get_rank(1) -> <<"1️⃣"/utf8>>;
+get_rank(2) -> <<"2️⃣"/utf8>>;
+get_rank(3) -> <<"3️⃣"/utf8>>;
+get_rank(4) -> <<"4️⃣"/utf8>>;
+get_rank(5) -> <<"5️⃣"/utf8>>;
+get_rank(6) -> <<"6️⃣"/utf8>>;
+get_rank(7) -> <<"7️⃣"/utf8>>;
+get_rank(8) -> <<"8️⃣"/utf8>>;
+get_rank(9) -> <<"9️⃣"/utf8>>;
+get_rank(10) -> <<"🔟"/utf8>>;
+get_rank(I) -> integer_to_binary(I).
