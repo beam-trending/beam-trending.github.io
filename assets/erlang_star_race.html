@@ -19,88 +19,101 @@
 
         var option;
         var index = 0;
+        var color = [
+            "#880000", "#AA0000", "#CC0000", "#FF0000", "#FF3333", "#FF8888", "#FFCCCC",
+            "#227700", "#55AA00", "#66DD00", "#77FF00", "#99FF33", "#BBFF66", "#CCFF99",
+            "#000088", "#0000AA", "#0000CC", "#0000FF", "#5555FF", "#9999FF", "#CCCCFF"
+        ];
 
         var source = race_top;
-        var source1 = [
-            { yAxis: ['elixir', 'erlang', 'pheniox', 'test', 'mock'], data: [100, 200, 700, 400, 500], date: '2021-01' },
-            { yAxis: ['elixir', 'erlang', 'pheniox', 'test', 'mock'], data: [800, 200, 700, 400, 500], date: '2021-02' },
-            { yAxis: ['elixir', 'erlang', 'pheniox', 'test', 'mock'], data: [900, 200, 700, 400, 700], date: '2021-03' },
-            { yAxis: ['elixir', 'erlang', 'pheniox', 'test', 'mock'], data: [1000, 200, 700, 400, 100], date: '2021-04' },
-            { yAxis: ['elixir', 'erlang', 'pheniox', 'test', 'mock'], data: [1100, 300, 701, 400, 500], date: '2021-05' },
-            { yAxis: ['elixir', 'erlang', 'pheniox', 'test', 'mock'], data: [100, 400, 200, 400, 200], date: '2021-06' },
-            { yAxis: ['elixir', 'erlang', 'pheniox', 'test', 'mock'], data: [100, 900, 700, 480, 100], date: '2021-07' },
-            { yAxis: ['elixir', 'erlang', 'pheniox', 'test', 'mock'], data: [100, 400, 500, 500, 600], date: '2021-08' },
-            { yAxis: ['elixir', 'erlang', 'pheniox', 'test', 'mock'], data: [100, 100, 300, 420, 800], date: '2021-09' },
-        ],
-            option = {
-                xAxis: {
-                    max: 'dataMax',
-                },
-                yAxis: {
-                    type: 'category',
-                    data: source[0].yAxis,
-                    inverse: true,
-                    axisLabel: {
-                        show: true,
-                        textStyle: {
-                            fontSize: 9
-                        },
-                        formatter: function (value) {
-                            return value;
-                        },
-                        rich: {
-                            flag: {
-                                fontSize: 25,
-                                padding: 5
-                            }
-                        }
+        option = {
+            xAxis: {
+                max: 'dataMax',
+            },
+            yAxis: {
+                type: 'category',
+                data: source[0].yAxis,
+                inverse: true,
+                axisLabel: {
+                    show: true,
+                    textStyle: {
+                        fontSize: 12
                     },
-                    animationDuration: 300,
-                    animationDurationUpdate: 300,
-                    max: (source[0].yAxis).length - 6
-                },
-                series: [{
-                    realtimeSort: true,
-                    type: 'bar',
-                    data: source[0].data,
-                    label: {
-                        show: true,
-                        position: 'right',
-                        valueAnimation: true
+                    formatter: function (value) {
+                        return value;
+                    },
+                    rich: {
+                        flag: {
+                            fontSize: 25,
+                            padding: 5
+                        }
                     }
-                }],
-                legend: {
-                    show: true
                 },
-                top: 0,
-                animationDuration: 0,
-                animationDurationUpdate: 2500,
-                animationEasing: 'linear',
-                animationEasingUpdate: 'linear',
-                graphic: {
-                    elements: [{
-                        type: 'text',
-                        right: 160,
-                        bottom: 60,
-                        style: {
-                            text: source[0].date,
-                            font: 'bolder 80px monospace',
-                            fill: 'rgba(100, 100, 100, 0.25)'
-                        },
-                        z: 100
-                    }]
+                animationDuration: 300,
+                animationDurationUpdate: 300,
+                max: 9
+            },
+            series: [{
+                realtimeSort: true,
+                type: 'bar',
+                data: source[0].data,
+                itemStyle: {
+                    color: function (param) {
+                        return [color[param.dataIndex % (color.length)]] || '#5470c6';
+                    }
+                },
+                encode: {
+                    x: 0,
+                    y: 3
+                },
+                label: {
+                    show: true,
+                    position: 'right',
+                    valueAnimation: true,
+                    fontFamily: 'monospace',
                 }
-            };
+            }],
+            legend: {
+                show: true
+            },
+            top: 0,
+            animationDuration: 0,
+            animationDurationUpdate: 2500,
+            animationEasing: 'linear',
+            animationEasingUpdate: 'linear',
+            graphic: {
+                elements: [{
+                    type: 'text',
+                    right: 160,
+                    bottom: 60,
+                    style: {
+                        text: source[0].date,
+                        font: 'bolder 80px monospace',
+                        fill: 'rgba(100, 100, 100, 0.25)'
+                    },
+                    z: 100
+                }]
+            }
+        };
 
         function run() {
             option.yAxis.data = source[index].yAxis;
-            option.yAxis.max = (source[index].yAxis).length - 6;
+            if (index < 36) {
+                option.yAxis.max = 9 + index;
+            } else {
+                option.yAxis.max = 44
+            }
+            if (index < 15) {
+                option.yAxis.axisLabel.textStyle.fontSize = 15;
+            } else {
+                option.yAxis.axisLabel.textStyle.fontSize = 9;
+            }
             option.series[0].data = source[index].data;
             option.graphic.elements[0].style.text = source[index].date
             if (index == source.length - 1) {
                 setTimeout(function () {
                     index = 0
-                }, 10000);
+                }, 100000);
             } else {
                 index++
             }

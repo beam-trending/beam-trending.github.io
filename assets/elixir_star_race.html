@@ -19,6 +19,11 @@
 
         var option;
         var index = 0;
+        var color = [
+            "#880000", "#AA0000", "#CC0000", "#FF0000", "#FF3333", "#FF8888", "#FFCCCC",
+            "#227700", "#55AA00", "#66DD00", "#77FF00", "#99FF33", "#BBFF66", "#CCFF99",
+            "#000088", "#0000AA", "#0000CC", "#0000FF", "#5555FF", "#9999FF", "#CCCCFF"
+        ];
 
         var source = race_top;
         option = {
@@ -32,7 +37,7 @@
                 axisLabel: {
                     show: true,
                     textStyle: {
-                        fontSize: 9
+                        fontSize: 12
                     },
                     formatter: function (value) {
                         return value;
@@ -46,16 +51,26 @@
                 },
                 animationDuration: 300,
                 animationDurationUpdate: 300,
-                max: (source[0].yAxis).length - 6
+                max: 9
             },
             series: [{
                 realtimeSort: true,
                 type: 'bar',
                 data: source[0].data,
+                itemStyle: {
+                    color: function (param) {
+                        return [color[param.dataIndex % (color.length)]] || '#5470c6';
+                    }
+                },
+                encode: {
+                    x: 0,
+                    y: 3
+                },
                 label: {
                     show: true,
                     position: 'right',
-                    valueAnimation: true
+                    valueAnimation: true,
+                    fontFamily: 'monospace',
                 }
             }],
             legend: {
@@ -83,13 +98,22 @@
 
         function run() {
             option.yAxis.data = source[index].yAxis;
-            option.yAxis.max = (source[index].yAxis).length - 6;
+            if (index < 36) {
+                option.yAxis.max = 9 + index;
+            } else {
+                option.yAxis.max = 44
+            }
+            if (index < 15) {
+                option.yAxis.axisLabel.textStyle.fontSize = 15;
+            } else {
+                option.yAxis.axisLabel.textStyle.fontSize = 9;
+            }
             option.series[0].data = source[index].data;
             option.graphic.elements[0].style.text = source[index].date
             if (index == source.length - 1) {
                 setTimeout(function () {
                     index = 0
-                }, 10000);
+                }, 100000);
             } else {
                 index++
             }
