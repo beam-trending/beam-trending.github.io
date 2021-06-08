@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+
+<head>
+    <meta charset="utf-8">
+</head>
+
+<body style="height: 100%; margin: 0">
+    <div id="bar" style="height: 51%"></div>
+    <div id="line" style="height: 2%"></div>
+    <div id="pie" style="height: 46%"></div>
+    <script type="text/javascript" src="../data/hex_pm.data"></script>
+
+    <script type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/echarts-nightly@5.1.2-dev.20210512/dist/echarts.min.js"></script>
+
+    <script type="text/javascript">
+        var dom = document.getElementById("bar");
+        var myChartBar = echarts.init(dom);
+        var app = {};
+
+        var option;
+
+        var newAlls = []
+        for (let index = 0; index < recents.length; index++) {
+            newAlls.push(alls[index] - recents[index]);
+
+        }
+        option = {
+            title: {
+                text: 'Hex.pm Top 100 Downloads',
+                subtext: 'https://hex.pm/api/packages?page=1&sort=downloads'
+            },
+            tooltip: {
+                trigger: 'axis',
+            },
+            xAxis: {
+                data: names,
+                axisLabel: {
+                    inside: false,
+                    show: true,
+                    rotate: -50,
+                    textStyle: {
+                        color: '#17202A',
+                    },
+                    interval: 0,
+                },
+                axisTick: {
+                    show: false
+                },
+                axisLine: {
+                    show: false
+                },
+                z: 10
+            },
+            yAxis: {
+                axisLine: {
+                    show: true
+                },
+                axisTick: {
+                    show: false
+                },
+                axisLabel: {
+                    textStyle: {
+                        color: '#999'
+                    }
+                }
+            },
+            dataZoom: [
+                {
+                    type: 'inside'
+                }
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    stack: 'one',
+                    name: "all",
+                    showBackground: true,
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(
+                            0, 0, 0, 1,
+                            [
+                                { offset: 0, color: '#83bff6' },
+                                { offset: 0.5, color: '#188df0' },
+                                { offset: 1, color: '#188df0' }
+                            ]
+                        )
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(
+                                0, 0, 0, 1,
+                                [
+                                    { offset: 0, color: '#2378f7' },
+                                    { offset: 0.7, color: '#2378f7' },
+                                    { offset: 1, color: '#83bff6' }
+                                ]
+                            )
+                        }
+                    },
+                    data: newAlls
+                }, {
+                    type: 'bar',
+                    name: 'recent',
+                    stack: 'one',
+                    showBackground: true,
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(
+                            0, 0, 0, 1,
+                            [
+                                { offset: 0, color: '#FFCCCC' },
+                                { offset: 0.5, color: '#FF0000' },
+                                { offset: 1, color: '#880000' }
+                            ]
+                        )
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(
+                                0, 0, 0, 1,
+                                [
+                                    { offset: 0, color: '#880000' },
+                                    { offset: 0.7, color: '#FF0000' },
+                                    { offset: 1, color: '#FFCCCC' }
+                                ]
+                            )
+                        }
+                    },
+                    data: recents
+                }
+            ]
+        };
+
+        // Enable data zoom when user click bar.
+        var zoomSize = 20;
+        myChartBar.on('click', function (params) {
+            console.log(names[Math.max(params.dataIndex - zoomSize / 2, 0)]);
+            myChartBar.dispatchAction({
+                type: 'dataZoom',
+                startValue: names[Math.max(params.dataIndex - zoomSize / 2, 0)],
+                endValue: names[Math.min(params.dataIndex + zoomSize / 2, names.length - 1)]
+            });
+        });
+
+        if (option && typeof option === 'object') {
+            myChartBar.setOption(option);
+        }
+
+    </script>
+
+    <script type="text/javascript">
+        var dom = document.getElementById("pie");
+        var myChartPie = echarts.init(dom);
+        var app = {};
+
+        var optionPie;
+
+        optionPie = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b} : {c} ({d}%)'
+            },
+            legend: {
+                type: 'scroll',
+                orient: 'vertical',
+                right: 50,
+                top: 0,
+                data: pieAllData,
+                selected: pieAllData.selected
+            },
+            series: [
+                {
+                    labelLayout: {
+                        hideOverlap: true,
+                    },
+                    avoidLabelOverlap: true,
+                    clockwise: true,
+                    roseType: 'radius',
+                    name: "all downloads",
+                    type: 'pie',
+                    radius: '55%',
+                    center: ['18%', '65%'],
+                    data: pieAllData,
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                },
+                {
+                    labelLayout: {
+                        hideOverlap: true,
+                    },
+                    avoidLabelOverlap: true,
+                    clockwise: true,
+                    roseType: 'radius',
+                    name: "recent downloads",
+                    type: 'pie',
+                    radius: '55%',
+                    center: ['45%', '65%'],
+                    data: pieRecentData,
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                },
+                {
+                    labelLayout: {
+                        hideOverlap: true,
+                    },
+                    avoidLabelOverlap: true,
+                    clockwise: true,
+                    roseType: 'radius',
+                    name: "week downloads",
+                    type: 'pie',
+                    radius: '55%',
+                    center: ['72%', '65%'],
+                    data: pieWeekData,
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                },
+            ]
+        };
+        if (optionPie && typeof optionPie === 'object') {
+            myChartPie.setOption(optionPie);
+        }
+
+    </script>
+</body>
+
+</html>
