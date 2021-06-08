@@ -33,6 +33,7 @@ main(_) ->
     ElixirTop = render_star_race("../elixir_star_race.json", "../data/elixir_star_race.data", Token),
     ErlangTop = render_star_race("../erlang_star_race.json", "../data/erlang_star_race.data", Token),
     render_top_page(?HomePageData, ErlangTop ++ ElixirTop),
+    render_hex_pm_top_repos(),
     erlang:halt(0).
 
 %%====================================================================
@@ -44,7 +45,7 @@ render_home_page(Token) ->
 render_top_page(File, Tops) ->
     TopChildren =
         pmap(fun({Owner, Repo, Token, Count}) ->
-             render_page([{Owner, Repo}], "../data/" ++ Repo ++ ".data", Token),
+            render_page([{Owner, Repo}], "../data/" ++ Repo ++ ".data", Token),
             Sep = <<"⇧"/utf8>>,
             {Count,
                 #{
@@ -57,14 +58,21 @@ render_top_page(File, Tops) ->
              end, Tops, 5),
     {_, SortTops} = lists:unzip(lists:sort(fun(A, B) -> A > B end, TopChildren)),
     List =
-        [#{
-            <<"label">> => <<"⬆︎⬆︎⬆︎⬆︎📈"/utf8>>,
-            <<"url">> => <<"assets/erlang_star_race.html">>,
-            <<"icon">> => <<"https://www.erlang.org/img/erlang.png">>},
+        [
+            #{
+                <<"label">> => <<"⬆︎⬆︎⬆︎⬆︎📈"/utf8>>,
+                <<"url">> => <<"assets/erlang_star_race.html">>,
+                <<"icon">> => <<"https://www.erlang.org/img/erlang.png">>
+            },
             #{
                 <<"label">> => <<"⬆︎⬆︎⬆︎⬆︎📈"/utf8>>,
                 <<"url">> => <<"assets/elixir_star_race.html">>,
                 <<"icon">> => <<"assets/elixir.svg">>
+            },
+            #{
+                <<"label">> => <<"HexPM Download📈"/utf8>>,
+                <<"url">> => <<"assets/hex_pm_download.html">>,
+                <<"icon">> => <<"https://hex.pm/images/favicon-160-93fa091b05b3e260e24e08789344d5ea.png">>
             },
             #{
                 <<"label">> => <<"5️⃣0️⃣0️⃣0️⃣⬆️"/utf8>>,
@@ -122,16 +130,16 @@ handle_avatar(File, Token, Repos) ->
     [begin
          Contributors = get_contributors(Owner, Repo, Token, 4),
          Avatars =
-             [begin  #{
+             [begin #{
                  <<"type">> => <<"avatar">>,
                  <<"size">> => 20,
-                 <<"src">> =>  Avatar}
-              end||#{<<"avatar_url">> := Avatar }<- Contributors],
+                 <<"src">> => Avatar}
+              end || #{<<"avatar_url">> := Avatar} <- Contributors],
          Bin = jsone:encode(Avatars),
          Owner1 = ?normalize(Owner),
          Repo1 = ?normalize(Repo),
          file:write(File, ["var ", Owner1, "_", Repo1, "_contributors=", Bin, ";\n"])
-     end||{Owner, Repo}<- Repos].
+     end || {Owner, Repo} <- Repos].
 
 get_contributors(Owner, Repo, Token, Page) ->
     get_contributors(Owner, Repo, Token, 1, Page + 1, []).
@@ -142,9 +150,9 @@ get_contributors(Owner, Repo, Token, Page, Max, Acc) ->
     Headers = [?ACCEPT_JSON, ?USER_AGENT],
     case request(Owner, Repo, Token, Path, Headers) of
         [] -> Acc;
-        List -> get_contributors(Owner, Repo, Token, Page+1, Max, Acc ++ List)
+        List -> get_contributors(Owner, Repo, Token, Page + 1, Max, Acc ++ List)
     end.
-    
+
 %% /repos/{owner}/{repo}/stats/code_frequency
 get_code_frequency(Owner, Repo, Token) ->
     Path = "/stats/code_frequency",
@@ -360,7 +368,7 @@ search_repos(Language, _Token) ->
          {Repo, Count} end ||
         #{<<"full_name">> := FName, <<"stargazers_count">> := Count} <- List].
 
-get_star_history_by_week(Owner, Repos,  OldPage, OldCount, OldStar, Token) ->
+get_star_history_by_week(Owner, Repos, OldPage, OldCount, OldStar, Token) ->
     GroupFun = fun(#{<<"starred_at">> := Time}, {AccT, CountT}) ->
         SystemTime =
             calendar:rfc3339_to_system_time(binary_to_list(Time)),
@@ -467,3 +475,33 @@ get_rank(8) -> <<"8️⃣"/utf8>>;
 get_rank(9) -> <<"9️⃣"/utf8>>;
 get_rank(10) -> <<"🔟"/utf8>>;
 get_rank(I) -> integer_to_binary(I).
+
+render_hex_pm_top_repos() ->
+    Url = "https://hex.pm/api/packages?page=1&sort=downloads",
+    Headers = [{"Accept", "application/vnd.hex+erlang"}, ?USER_AGENT],
+    case ibrowse:send_req(Url, Headers, get, <<>>, [], ?TIMEOUT) of
+        {ok, "200", _, Body} ->
+            Repos = erlang:binary_to_term(list_to_binary(Body)),
+            {Name, All, Day, Week, Recent} =
+                lists:foldl(fun(I, {NameAcc, AllAcc, DayAcc, WeekAcc, RecentAcc}) ->
+                    #{<<"name">> := Name,
+                        <<"downloads">> := #{<<"all">> := All, <<"day">> := Day, <<"recent">> := Recent,
+                            <<"week">> := Week}} = I,
+                    {[Name | NameAcc], [All | AllAcc], [Day | DayAcc], [Week | WeekAcc], [Recent | RecentAcc]}
+                            end, {[], [], [], [], []}, lists:reverse(lists:sublist(Repos, 100))),
+            PieAll = [begin #{<<"name">> => N, <<"value">> => A} end || {N, A} <- lists:zip(Name, All)],
+            PieWeek = [begin #{<<"name">> => N, <<"value">> => A} end || {N, A} <- lists:zip(Name, Week)],
+            PieRecent = [begin #{<<"name">> => N, <<"value">> => A} end || {N, A} <- lists:zip(Name, Recent)],
+            Bin = [
+                "var names=", jsone:encode(Name), ";\n", "var alls=", jsone:encode(All), ";\n",
+                "var days=", jsone:encode(Day), ";\n", "var weeks=", jsone:encode(Week), ";\n",
+                "var weeks=", jsone:encode(Week), ";\n", "var recents=", jsone:encode(Recent), ";\n",
+                "var pieAllData = ", jsone:encode(PieAll), ";\n",
+                "var pieWeekData = ", jsone:encode(PieWeek), ";\n",
+                "var pieRecentData = ", jsone:encode(PieRecent), ";\n"
+            ],
+            file:write_file("../data/hex_pm.data", Bin),
+            ok;
+        Error ->
+            io:format("hex.pm downloads chart error:~p", [Error])
+    end.
