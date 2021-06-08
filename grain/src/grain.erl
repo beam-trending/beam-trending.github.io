@@ -71,7 +71,7 @@ render_top_page(File, Tops) ->
             },
             #{
                 <<"label">> => <<"HexPM Download📈"/utf8>>,
-                <<"url">> => <<"assets/hex_pm_download.html">>,
+                <<"url">> => <<"assets/hex_pm_downloads.html">>,
                 <<"icon">> => <<"https://hex.pm/images/favicon-160-93fa091b05b3e260e24e08789344d5ea.png">>
             },
             #{
