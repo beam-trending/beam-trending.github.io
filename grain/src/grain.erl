@@ -412,17 +412,14 @@ get_star_history(Owner, Repo, Token, GroupFun, Page, Count, Acc) ->
     end.
 
 request(Owner, Repo, Token, Path, Headers) ->
-    UrlList =
-        case lists:member($?, Path) of
-            true when Token =/= false ->
-                [?URL, "repos/", Owner, "/", Repo, Path, "&access_token=", Token];
-            false when Token =/= false ->
-                [?URL, "repos/", Owner, "/", Repo, Path, "?access_token=", Token];
-            _ ->
-                [?URL, "repos/", Owner, "/", Repo, Path]
+    UrlList =  [?URL, "repos/", Owner, "/", Repo, Path],
+    AuthHeader = 
+        case Token of
+            false -> [];
+            _ -> [{"Authorization", "token " ++ Token}]
         end,
     Url = lists:concat(UrlList),
-    case ibrowse:send_req(Url, Headers, get, <<>>, [], ?TIMEOUT) of
+    case ibrowse:send_req(Url, AuthHeader ++ Headers, get, <<>>, [], ?TIMEOUT) of
         {ok, "200", _, Body} ->
             jsone:decode(list_to_binary(Body));
         {ok, "202", _, _} ->
@@ -435,7 +432,7 @@ request(Owner, Repo, Token, Path, Headers) ->
 %%Repository statistics are cached by the SHA of the repository's default branch;
 %% pushing to the default branch resets the statistics cache.
             timer:sleep(60000),
-            {ok, "200", _Header, Body} = ibrowse:send_req(Url, Headers, get, <<>>, [], ?TIMEOUT),
+            {ok, "200", _Header, Body} = ibrowse:send_req(Url, AuthHeader ++ Headers, get, <<>>, [], ?TIMEOUT),
             jsone:decode(list_to_binary(Body));
         {ok, "403", _Header, Body} ->
             io:format("Forbidden by GITHUB: ~p~n", [Body]),
