@@ -29,7 +29,7 @@
     "nerves-project/nerves",
     "philss/floki",
     "elixir-mint/mint",
-    "teamon/tesla",
+    "elixir-tesla/tesla",
     "michalmuskala/jason",
     "rusterlium/rustler",
     "elixir-ecto/ecto",
